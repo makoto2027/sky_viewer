@@ -1,0 +1,177 @@
+body.light {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+body.dark {
+    background-color: #060231;
+    color: #ffffff;
+}
+
+/* 共通スタイル */
+#toggle-theme {
+    padding: 8px 12px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* ライトモード用 */
+body.light #toggle-theme {
+    background-color: #060231;
+    color: #eeeeee;
+}
+
+/* ダークモード用 */
+body.dark #toggle-theme {
+    background-color: #eeeeee;
+    color: #333333;
+}
+
+
+button {
+    padding: 8px 12px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+}
+
+a {
+    color: #007bff;  /* 通常のリンク色 */
+    text-decoration: none;
+}
+
+a:visited {
+    color: #007bff;  /* 訪問済みでも同じ色にする */
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    nav a {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    main {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    form input, form button {
+        width: 100%;
+        margin-top: 5px;
+    }
+}
+
+/* 検索履歴ページのスタイル */
+
+.history-controls {
+    margin: 1em 0;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1em;
+}
+
+body.dark .history-table th {
+    background-color: #444;
+    color: #fff;
+}
+
+body.dark .history-table tr:hover {
+    background-color: #555;
+}
+
+body.dark .history-controls a {
+    background-color: #e67e22;
+}
+
+body.dark .history-controls a:hover {
+    background-color: #d35400;
+}
+
+/* base.css または style.css などに追加 */
+
+body.dark #layer-controls {
+    background-color: #1e1e1e;
+    border-left: 1px solid #555;
+    color: #eee;
+}
+body.dark #layer-controls h3 {
+    color: #fff;
+}
+body.dark #layer-controls button {
+    background-color: #333;
+    color: #eee;
+    border: 1px solid #666;
+}
+body.dark #layer-controls button:hover {
+    background-color: #444;
+}
+body.dark #layer-controls label {
+    color: #eee;
+}
+body.dark #layer-controls input[type="checkbox"] {
+    accent-color: #888;
+}
+
+.history-controls form {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.history-controls select {
+    padding: 4px 8px;
+    font-size: 0.9em;
+    border-radius: 4px;
+}
+
+.history-controls a {
+    padding: 6px 12px;
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.history-controls a:hover {
+    background-color: #c0392b;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+.history-table th, .history-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.history-table th {
+    background-color: #f2f2f2;
+}
+
+.history-table tr:hover {
+    background-color: #bebebe;
+}
+
+.history-table img {
+    display: block;
+    margin: 0 auto;
+}
+
+.history-table + p {
+    margin-top: 1em;
+    font-style: italic;
+    color: gray;
+}

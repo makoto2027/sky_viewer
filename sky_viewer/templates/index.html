@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム - 空模様ビューワー{% endblock %}
+
+{% block content %}
+<h2>🌍 世界の空模様を調べよう</h2>
+
+<h3>🔍 都市名で空模様を調べる</h3>
+<form method="POST">
+    <input type="text" name="city" placeholder="都市名を入力（例：Tokyo）" required>
+    <button type="submit">検索</button>
+</form>
+
+<div id="weather-block">
+    {% if weather %}
+        <script>
+            // 現在地の結果表示を消す
+            const geoResult = document.getElementById("result");
+            if (geoResult) geoResult.innerHTML = "";
+            const geoForm = document.getElementById("favorite-form");
+            if (geoForm) geoForm.innerHTML = "";
+        </script>
+        
+        <div class="result">
+            <h3>📍 {{ weather.都市 }}</h3>
+            <p>時刻：{{ weather.時刻 }}</p>
+            <p>天気：{{ weather.天気 }}</p>
+            <p>気温：{{ weather.気温 }}</p>
+            <p>湿度：{{ weather.湿度 }}</p>
+            <img src="http://openweathermap.org/img/wn/{{ weather.アイコン }}@2x.png">
+
+            <form method="post" action="{{url_for('add_favorite')}}">
+                <input type="hidden" name="city" value="{{ weather.都市 }}">
+                <input type="hidden" name="time" value="{{ weather.時刻 }}">
+                <input type="hidden" name="weather" value="{{ weather.天気 }}">
+                <input type="hidden" name="temperature" value="{{ weather.気温 }}">
+                <input type="hidden" name="humidity" value="{{ weather.湿度 }}">
+                <input type="hidden" name="icon" value="{{ weather.アイコン }}">
+                <input type="hidden" name="method" value="{{ weather.方法 }}">
+                <button type="submit">お気に入りに追加</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
+<h3>🗺 現在地の天気を調べる</h3>
+<button onclick="getLocation()">📍 現在地の天気を見る</button>
+
+<div id="result"></div>
+<div id="favorite-form"></div>
+
+<script src="{{ url_for('static', filename='js/geo.js') }}"></script>
+
+<!-- 
+<h3>🔁 検索履歴（最新5件）</h3>
+{% if history %}
+    <ul>
+        {% for item in history|reverse %}
+            <li>
+                📍 {{ item.都市 }} - {{ item.天気 }} / {{ item.気温 }}
+                （{{ item.時刻 }}、方法：{{ item.方法 }}）
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+-->
+{% endblock %}

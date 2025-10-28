@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}検索履歴{% endblock %}
+
+{% block content %}
+<h2>📂 検索履歴</h2>
+
+<div class="history-controls">
+    <form method="get" action="{{ url_for('history') }}">
+        <label>日数:</label>
+        <select name="days" onchange="this.form.submit()">
+            <option value="1" {% if days == 1 %}selected{% endif %}>1日</option>
+            <option value="7" {% if days == 7 %}selected{% endif %}>7日</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>30日</option>
+            <option value="9999" {% if days > 30 %}selected{% endif %}>全て</option>
+        </select>
+
+        <label>フィルター:</label>
+        <select name="fav" onchange="this.form.submit()">
+            <option value="0" {% if fav == 0 %}selected{% endif %}>すべて</option>
+            <option value="1" {% if fav == 1 %}selected{% endif %}>お気に入りのみ</option>
+        </select>
+
+        <!-- 表示件数制限 -->
+        <label>表示件数:</label>
+        <select name="limit" onchange="this.form.submit()">
+            <option value="25" {% if limit == 25 %}selected{% endif %}>25件</option>
+            <option value="50" {% if limit == 50 %}selected{% endif %}>50件</option>
+        </select>
+    </form>
+
+    <a href="{{ url_for('clear_all') }}" onclick="return confirm('本当に全て削除しますか？');">
+        🗑️ 全削除
+    </a>
+</div>
+
+{% if histories %}
+    <p>{{ histories | length }} 件の履歴があります。</p>
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>日時</th>
+                <th>都市</th>
+                <th>天気</th>
+                <th>気温</th>
+                <th>湿度</th>
+                <th>方法</th>
+                <th>★</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in histories %}
+            <tr>
+                <td>{{ row['search_time'] }}</td> <!-- search_time -->
+                <td>{{ row['city'] }}</td> <!-- city -->
+                <td>
+                    {{ row['weather'] }}<br>
+                    {% if row['icon'] %}
+                    <img src="https://openweathermap.org/img/wn/{{ row['icon'] }}@2x.png" alt="icon" width="40">
+                    {% endif %}
+                </td>
+                <td>{{ row['temperature'] }}</td> <!-- temperature -->
+                <td>{{ row['humidity'] }}</td> <!-- humidity -->
+                <td>{{ row['method'] }}</td> <!-- method -->
+                <td>
+                    <a href="{{ url_for('toggle_fav', history_id=row['id']) }}">
+                        {% if row['favorite'] == 1 %}⭐{% else %}☆{% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>履歴が見つかりませんでした。</p>
+{% endif %}
+
+{% endblock %}

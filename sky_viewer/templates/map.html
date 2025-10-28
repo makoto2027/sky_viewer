@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}地図画面 - 空模様ビューワー{% endblock %}
+
+{% block content %}
+<h2>🗺 地図から天気を調べる</h2>
+<p>地図上をクリックすると、その場所の天気が表示されます。</p>
+
+<!-- 天気結果表示を上に移動 -->
+<div id="weather-result" style="margin-bottom: 20px;"></div>
+
+<!-- 地図は下に配置 -->
+<div style="display: flex;">
+    <!-- マップ -->
+    <div id="map" style="height: 600px; flex: 1;"></div>
+
+    <!-- レイヤーコントロール -->
+    <div id="layer-controls" style="width: 250px; padding: 10px; background: #f9f9f9; border-left: 1px solid #ccc;">
+        <h3>🧭 レイヤー選択</h3>
+        <button onclick="toggleAll(true)">全て表示</button>
+        <button onclick="toggleAll(false)">全て非表示</button>
+        <ul id="layer-list" style="list-style: none; padding: 0; margin-top: 10px;"></ul>
+    </div>
+</div>
+<button onclick="zoomToCurrentLocation()">📍 現在地へ移動</button>
+
+<!-- Leaflet.js 読み込み -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+    const map = L.map('map').setView([35.6812, 139.7671], 10); // 初期東京＆ズームを近く
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let currentMarker = null; // マーカーを記憶する変数
+
+    function zoomToCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                map.setView([lat, lon], 13); // ズームして中心移動
+                currentMarker = L.marker([lat, lon]).addTo(map)
+                    .bindPopup("現在地")
+                    .openPopup();
+            }, function () {
+                alert("現在地を取得できませんでした。");
+            });
+        } else {
+            alert("このブラウザでは現在地取得がサポートされていません。");
+        }
+    }
+
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lon = e.latlng.lng;
+
+        // すでにマーカーがある場合は削除
+        if (currentMarker) {
+            map.removeLayer(currentMarker);
+        }
+
+        // 新しいマーカーを追加
+        currentMarker = L.marker([lat, lon]).addTo(map);
+
+        // 天気データ取得
+        fetch(`/weather?lat=${lat}&lon=${lon}&method=map`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('weather-result').innerHTML = `
+                    <div class="result">
+                        <h3>📍 ${data.都市}</h3>
+                        <p>時刻：${data.時刻}</p>
+                        <p>天気：${data.天気}</p>
+                        <p>気温：${data.気温} ℃</p>
+                        <p>湿度：${data.湿度} %</p>
+                        <img src="http://openweathermap.org/img/wn/${data.アイコン}@2x.png" alt="icon">
+                        <form method="post" action="/add_favorite">
+                            <input type="hidden" name="city" value="${data.都市}">
+                            <input type="hidden" name="time" value="${data.時刻}">
+                            <input type="hidden" name="weather" value="${data.天気}">
+                            <input type="hidden" name="temperature" value="${data.気温}">
+                            <input type="hidden" name="humidity" value="${data.湿度}">
+                            <input type="hidden" name="icon" value="${data.アイコン}">
+                            <input type="hidden" name="method" value="map">
+                            <button type="submit">お気に入りに追加</button>
+                        </form>
+                    </div>
+                `;
+            });
+    });
+
+    const apiKey = "{{ api_key }}";
+
+    const LAYER_LABELS = {
+        clouds: "雲",
+        precipitation: "降水",
+        temp: "気温",
+        wind: "風",
+        pressure: "気圧"
+    };
+
+    const layers = {
+        clouds: L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`),
+        precipitation: L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`),
+        temp: L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`),
+        wind: L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`),
+        pressure: L.tileLayer(`https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=${apiKey}`)
+    };
+
+    const list = document.getElementById("layer-list");
+
+    // レイヤーごとのUIを生成（初期状態では全てOFF）
+    Object.keys(layers).forEach(layerName => {
+        const li = document.createElement("li");
+        li.setAttribute("data-layer", layerName);
+        li.innerHTML = `
+            <label>
+                <input type="checkbox" onchange="toggleLayer('${layerName}', this.checked)">
+                ${LAYER_LABELS[layerName] || layerName}
+            </label>
+        `;
+        list.appendChild(li);
+    });
+
+    // レイヤーのON/OFF切り替え
+    function toggleLayer(name, visible) {
+        if (visible) {
+            layers[name].addTo(map);
+            applyZOrder();  // 表示されたらZ順も更新
+        } else {
+            map.removeLayer(layers[name]);
+        }
+    }
+
+    // 並び順を反映（Z-indexを上から順に）
+    function applyZOrder() {
+        const order = [...document.querySelectorAll("#layer-list li")].reverse();
+        order.forEach(li => {
+            const name = li.dataset.layer;
+            if (map.hasLayer(layers[name])) {
+                layers[name].bringToFront();
+            }
+        });
+    }
+
+    // 一括ON/OFF切り替え
+    function toggleAll(state) {
+        document.querySelectorAll("#layer-list input[type=checkbox]").forEach(cb => {
+            cb.checked = state;
+            toggleLayer(cb.closest("li").dataset.layer, state);
+        });
+    }
+
+    // ドラッグで順番変更
+    Sortable.create(list, {
+        animation: 150,
+        onEnd: applyZOrder
+    });
+</script>
+{% endblock %}
