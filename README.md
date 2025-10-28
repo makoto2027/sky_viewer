@@ -15,27 +15,40 @@ pip install -r requirements.txt
 ```
 
 ### 環境変数の設定
-プロジェクトルート、または `sky_viewer/` に `.env` を作成:
+`sky_viewer/.env` または `config.json`を作成
+
+`.env`
 ```bash
 OPENWEATHERMAP_API_KEY=あなたのAPIキー
-FLASK_SECRET_KEY=ランダムな長い文字列
+```
+`config.json`
+```bash
+{
+    "BASE_URL": "http://api.openweathermap.org/data/2.5/forecast",
+    "API_KEY": "あなたのAPIキー"
+}
 ```
 
-### 起動方法
+### 起動方法（Flask）
 - ルートからモジュール指定:
 ```bash
 cd "/this/repository/path"
 source .venv/bin/activate
-flask --app sky_viewer.app --debug run
+flask --app sky_viewer.app run
 ```
 
 - または `sky_viewer` ディレクトリで起動:
 ```bash
 cd "/this/repository/path/sky_viewer"
 source ../.venv/bin/activate
-export FLASK_APP=app:app
-export FLASK_DEBUG=1
 flask run
+```
+
+### 起動方法（Streamlit）
+```bash
+cd "/this/repository/path"
+source .venv/bin/activate
+streamlit run main.py
 ```
 
 ### 主なエンドポイント
@@ -58,6 +71,3 @@ SQLite を使用。履歴DBは `sky_viewer/database/history.db`。
 - 静的ファイル: `sky_viewer/static/`
 - テンプレート: `sky_viewer/templates/`
 - アプリ本体: `sky_viewer/app.py`
-
-### ライセンス
-教育目的のサンプル。必要に応じて追記してください。
